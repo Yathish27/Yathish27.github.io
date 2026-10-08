@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yathish Veerabhadraiah · Security-minded Software Engineer</title>
+  <meta name="description" content="Portfolio of Yathish Naraganahalli Veerabhadraiah: software development engineer focused on security automation, AWS cloud services and detection tooling. M.S. Cybersecurity, NYU (4.0 GPA).">
+  <meta name="theme-color" content="#05070d">
+  <meta property="og:title" content="Yathish Veerabhadraiah · Security-minded Software Engineer">
+  <meta property="og:description" content="Backend services on AWS with security designed in. Talking intro, periodic table of skills, and a trophy corridor.">
+  <meta property="og:image" content="assets/img/suit-portrait-web.jpg">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2305070d'/%3E%3Ctext x='32' y='43' font-family='Arial' font-weight='700' font-size='34' text-anchor='middle' fill='%2338e8ff'%3EY%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="top">
+    <div class="container nav-inner">
+      <a class="logo" href="#intro" aria-label="Back to top">
+        <span class="logo-mark">Y</span>
+        <span class="logo-text">YNV<small>// sec·eng</small></span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#intro">Intro</a>
+        <a href="#ops">Console</a>
+        <a href="#avatars">Avatars</a>
+        <a href="#id">ID</a>
+        <a href="#skills">Skills</a>
+        <a href="#experience">Experience</a>
+        <a href="#achievements">Achievements</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="btn btn-small btn-primary nav-cta" href="assets/Yathish_Veerabhadraiah_Resume.pdf" download>Résumé ↓</a>
+      <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO / FULL-BODY HELLO ============ -->
+    <section id="intro" class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="dot pulse"></span> ACCESS GRANTED // NEW YORK, NY</p>
+          <h1 class="hero-title">
+            <span class="glitch" data-text="Yathish">Yathish</span><br>
+            <span class="grad">Naraganahalli Veerabhadraiah</span>
+          </h1>
+          <p class="hero-role">Software Development Engineer · <span id="typed"></span><span class="caret" aria-hidden="true"></span></p>
+          <p class="hero-sub"><b class="neon">I'm watching you.</b> Your pipelines, your IAM policies, your prompt injections. I build and run backend services on AWS with security designed in: REST APIs, LLM-assisted threat detection, and CI/CD that gates on SAST, DAST and SCA before anything ships.</p>
+          <div class="hero-cta">
+            <button class="btn btn-primary" id="heroPlay"><span class="play-ico">🔊</span> Hear me say hello</button>
+            <a class="btn btn-ghost" href="#ops">Open the console</a>
+            <a class="btn btn-ghost" href="assets/Yathish_Veerabhadraiah_Resume.pdf" download>Résumé</a>
+          </div>
+          <div class="intel" id="intel">
+            <p class="intel-head"><i class="live"></i> I'M WATCHING YOU <span class="intel-tag">client-side · nothing leaves your browser</span></p>
+            <ul class="intel-list" id="intelList"></ul>
+          </div>
+        </div>
+
+        <div class="hero-avatar">
+          <div class="holo holo-body" id="holo">
+            <div class="holo-ring" aria-hidden="true"></div>
+            <div class="holo-screen">
+              <video id="heroVideo" class="holo-video" playsinline muted autoplay preload="auto" aria-label="Yathish standing and waving hello"></video>
+              <img id="heroFallback" class="holo-fallback is-hidden" src="assets/img/body-poster.jpg" alt="Yathish standing in a navy suit">
+              <div class="holo-scan" aria-hidden="true"></div>
+              <div class="holo-corners" aria-hidden="true"></div>
+              <div class="holo-hud" aria-hidden="true">
+                <span class="hud-tl"><i class="live"></i> CAM-02 · SOC FEED</span>
+                <span class="hud-tr" id="hudTime">00:00</span>
+                <span class="hud-bl">SUBJECT YNV · FULL BODY</span>
+                <span class="hud-br rec">REC ●</span>
+              </div>
+              <div class="holo-captions" id="heroCaption" aria-live="polite"></div>
+              <button class="holo-play" id="holoPlay" type="button"><span class="play-ico">🔊</span><span>Hear me say hello</span></button>
+            </div>
+            <div class="holo-base" aria-hidden="true"></div>
+          </div>
+          <p class="holo-note">Full-body avatar generated from my photos · voice is synthetic</p>
+        </div>
+      </div>
+      <a href="#ops" class="scroll-hint" aria-label="Scroll to next section"><span></span>scroll</a>
+    </section>
+
+    <!-- ============ TICKER ============ -->
+    <div class="ticker" aria-hidden="true"><div class="ticker-track" id="tickerTrack"></div></div>
+
+    <!-- ============ OPS CONSOLE: LIVE FEED + TERMINAL + TELEMETRY ============ -->
+    <section id="ops" class="section ops">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow"><span class="dot pulse"></span> LIVE FEED // OPS CONSOLE</p>
+          <h2>Live from the SOC</h2>
+          <p class="lead">My introduction on the live feed, an interactive shell and live skill telemetry. Click the terminal and type <b>help</b>, or try <b>pwn</b>.</p>
+        </div>
+        <div class="ops-grid reveal">
+          <div class="ops-feed">
+            <div class="feed-frame feed-intro" id="feedFrame">
+              <video id="avA" class="feed-video" playsinline muted loop autoplay preload="auto" aria-label="Yathish talking intro"></video>
+              <video id="avB" class="feed-video is-hidden" playsinline preload="auto" aria-label="Yathish talking intro, next part"></video>
+              <img id="avFallback" class="feed-video is-hidden" src="assets/img/hero-poster.jpg" alt="Yathish in a navy suit, smiling">
+              <div class="feed-scan" aria-hidden="true"></div>
+              <div class="feed-hud" aria-hidden="true">
+                <span class="hud-tl"><i class="live"></i> CAM-01 · INTRO FEED</span>
+                <span class="hud-tr" id="feedClock">00:00:00</span>
+                <span class="hud-bl" id="feedLabel">INTRO · 1/3</span>
+                <span class="hud-br rec">REC ●</span>
+              </div>
+              <div class="holo-captions feed-captions" id="captions" aria-live="polite"></div>
+              <button class="holo-play feed-play" id="feedPlay" type="button"><span class="play-ico">▶</span><span>Play my intro</span></button>
+            </div>
+          </div>
+          <div class="ops-term">
+            <div class="term" id="term">
+              <div class="term-bar"><span class="tb r"></span><span class="tb y"></span><span class="tb g"></span><span class="term-title">yathish@sec-ops: ~</span><span class="term-hint">type <b>help</b> · Tab completes · ↑ history</span></div>
+              <div class="term-chips" aria-label="Quick commands">
+                <button type="button" data-cmd="help">help</button>
+                <button type="button" data-cmd="pwn">pwn</button>
+                <button type="button" data-cmd="watch">watch</button>
+                <button type="button" data-cmd="skills sec">skills sec</button>
+                <button type="button" data-cmd="projects">projects</button>
+                <button type="button" data-cmd="nmap yathish">nmap yathish</button>
+                <button type="button" data-cmd="sudo hire yathish">sudo hire yathish</button>
+                <button type="button" data-cmd="contact">contact</button>
+              </div>
+              <div class="term-body" id="termBody">
+                <div class="term-out" id="termOut"></div>
+                <form class="term-line" id="termForm" autocomplete="off">
+                  <label for="termInput" class="term-prompt">yathish@sec-ops:~$</label>
+                  <input id="termInput" class="term-input" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="Terminal input" placeholder="help">
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="ops-telemetry">
+            <div class="tele-panel">
+              <div class="tele-head"><span>SKILL TELEMETRY</span><span id="teleTick">● standby</span></div>
+              <ul class="tele-bars" id="teleBars"></ul>
+              <canvas id="teleGraph" class="tele-graph" height="70" aria-hidden="true"></canvas>
+              <div class="tele-log" id="teleLog" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HACKER AVATARS ============ -->
+    <section id="avatars" class="section avatars">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">// AVATARS · HACKER MODE</p>
+          <h2>Three faces of the threat model</h2>
+          <p class="lead">Red team, blue team and the cloud in between. Hover each card to break it a little.</p>
+        </div>
+        <div class="avatar-grid reveal" id="avatarGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about" class="section about">
+      <div class="container about-grid">
+        <div class="about-copy reveal">
+          <p class="eyebrow">// PROFILE</p>
+          <h2>Security background. Builder's habits.</h2>
+          <p>I'm a software engineer who grew up on the security side of the house: two years running DevSecOps at Schneider Electric, then CTO of an AI startup where I was the only technical hire and owned everything from IAM policies to the MCP server behind the product.</p>
+          <p>That mix means I write the service <em>and</em> the threat model. I'm comfortable moving across software, cloud infrastructure and security teams, triaging vulnerabilities, automating remediation, and red-teaming LLM behaviour before it reaches users.</p>
+          <p>Currently finishing my M.S. in Cybersecurity at NYU Tandon with a 4.0 GPA, where I also teach offensive security and software supply-chain labs as a graduate course assistant.</p>
+          <ul class="chips">
+            <li>AWS</li><li>Node.js · Spring Boot</li><li>DevSecOps</li><li>LLM security</li><li>Threat detection</li><li>Red teaming</li>
+          </ul>
+        </div>
+        <div class="about-photos reveal">
+          <figure class="photo p1"><img src="assets/img/suit-chair-web.jpg" alt="Yathish in a navy suit leaning on a chair" loading="lazy"><figcaption>ON DUTY</figcaption></figure>
+          <figure class="photo p2"><img src="assets/img/gym-green-web.jpg" alt="Yathish in a grey training shirt" loading="lazy"><figcaption>OFF DUTY</figcaption></figure>
+          <figure class="photo p3"><img src="assets/img/white-stool-web.jpg" alt="Yathish seated on a stool in a white shirt" loading="lazy"><figcaption>NYC · 2026</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FLIPPING ID CARD ============ -->
+    <section id="id" class="section badge-section">
+      <div class="container badge-grid">
+        <div class="badge-copy reveal">
+          <p class="eyebrow">// IDENTITY MODULE</p>
+          <h2>Access badge</h2>
+          <p>Hover or tap the card to flip it. The front is who I am; the back is how to reach me.</p>
+          <div class="badge-actions">
+            <button class="btn btn-ghost" id="flipBtn" type="button">Flip card</button>
+            <a class="btn btn-link" href="#contact">Contact details →</a>
+          </div>
+          <dl class="badge-facts">
+            <div><dt>Clearance</dt><dd>Least-privilege by default</dd></div>
+            <div><dt>Base</dt><dd>New York, NY</dd></div>
+            <div><dt>Status</dt><dd><span class="dot pulse"></span> Open to SDE / Security roles</dd></div>
+          </dl>
+        </div>
+        <div class="badge-stage">
+          <div class="badge-hang">
+            <div class="lanyard" aria-hidden="true"><span class="clip"></span></div>
+            <div class="id-card" id="idCard" tabindex="0" role="button" aria-pressed="false" aria-label="Flip ID card">
+              <div class="id-inner">
+                <div class="id-face id-front">
+                  <div class="id-top"><span class="id-org">NYU TANDON // NYC</span><span class="id-type">SEC·ENG</span></div>
+                  <div class="id-photo"><img src="assets/img/id-photo.jpg" alt=""><i class="id-holo"></i></div>
+                  <div class="id-name">Yathish N. Veerabhadraiah</div>
+                  <div class="id-role">Software Development Engineer</div>
+                  <div class="id-meta"><span>ID <b>YNV-2026-0407</b></span><span>CLR <b>LEVEL 4</b></span></div>
+                  <div class="id-chip" aria-hidden="true"></div>
+                  <div class="id-barcode" aria-hidden="true"></div>
+                  <div class="id-hint">hover · tap · flip</div>
+                </div>
+                <div class="id-face id-back">
+                  <div class="id-stripe" aria-hidden="true"></div>
+                  <ul class="id-contact">
+                    <li><span>EMAIL</span><b>yn2426@nyu.edu</b></li>
+                    <li><span>PHONE</span><b>+1 347 466 6215</b></li>
+                    <li><span>BASE</span><b>New York, NY</b></li>
+                    <li><span>LINKEDIN</span><b>/in/yathish-n-veerabhadraiah</b></li>
+                    <li><span>GITHUB</span><b>/Yathish27</b></li>
+                  </ul>
+                  <div class="id-back-bottom">
+                    <div class="id-qr" id="idQr" aria-hidden="true"></div>
+                    <div class="id-sign"><span>CERTIFIED</span><b>CRTP</b><small>Red Team Professional</small><small>CPTS · CRTO in progress</small></div>
+                  </div>
+                  <p class="id-fine">If found, return to the nearest SOC. Property of a 4.0 GPA.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PERIODIC TABLE OF SKILLS ============ -->
+    <section id="skills" class="section skills">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">// PERIODIC TABLE OF SKILLS</p>
+          <h2>Elements I work with</h2>
+          <p class="lead">Hover or tap an element to see where I used it. The number in the corner is years of hands-on use. Filter by group.</p>
+        </div>
+        <div class="pt-filters reveal" id="ptFilters"></div>
+        <div class="ptable reveal" id="ptable"></div>
+        <div class="pt-tip" id="ptTip" hidden></div>
+      </div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section id="experience" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">// MISSION LOG</p>
+          <h2>Experience</h2>
+          <p class="lead">From DevSecOps at enterprise scale to CTO of a one-engineer AI startup.</p>
+        </div>
+        <ol class="timeline" id="timeline"></ol>
+      </div>
+    </section>
+
+    <!-- ============ ACHIEVEMENTS (HORIZONTAL SCROLL) ============ -->
+    <section id="achievements" class="hscroll-section">
+      <div class="hscroll-sticky">
+        <div class="container hscroll-head">
+          <p class="eyebrow">// ACHIEVEMENTS · KEEP SCROLLING TO WALK ALONG THE CABINET</p>
+          <h2>Trophy cabinet <span class="cab-hint">hover a trophy to read its plaque</span></h2>
+          <div class="hscroll-progress" aria-hidden="true"><span id="achProg"></span></div>
+        </div>
+        <div class="hscroll-track" id="achTrack"></div>
+      </div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section id="projects" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">// BUILD LOG</p>
+          <h2>Projects</h2>
+          <p class="lead">Things I shipped, tested, broke on purpose, or simulated.</p>
+        </div>
+        <div class="projects" id="projectsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ EDUCATION ============ -->
+    <section id="education" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">// TRAINING DATA</p>
+          <h2>Education &amp; certifications</h2>
+        </div>
+        <div class="edu-grid" id="educationGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section id="contact" class="section contact">
+      <div class="container">
+        <div class="contact-panel reveal">
+          <p class="eyebrow"><span class="dot pulse"></span> OPEN CHANNEL</p>
+          <h2>Let's build something secure together.</h2>
+          <p class="lead">Looking for an SDE who can own the service, the pipeline and the threat model? I'm based in New York and open to software, cloud and security engineering roles.</p>
+          <div class="contact-actions">
+            <a class="btn btn-primary" href="mailto:yn2426@nyu.edu">Email me</a>
+            <button class="btn btn-ghost" id="copyEmail" type="button">Copy address</button>
+            <a class="btn btn-ghost" href="https://linkedin.com/in/yathish-n-veerabhadraiah" target="_blank" rel="noopener">LinkedIn ↗</a>
+            <a class="btn btn-ghost" href="https://github.com/Yathish27" target="_blank" rel="noopener">GitHub ↗</a>
+            <a class="btn btn-ghost" href="tel:+13474666215">Call</a>
+          </div>
+          <p class="contact-line mono">yn2426@nyu.edu · +1 347 466 6215 · New York, NY</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="mono">© <span id="year"></span> Yathish Naraganahalli Veerabhadraiah</span>
+      <span class="mono dim">built with HTML · CSS · JS · a synthetic voice · and least privilege</span>
+      <a href="#top" class="mono">back to top ↑</a>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
