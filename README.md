@@ -25,9 +25,15 @@ Everything textual lives in `js/data.js`: name, links, typed roles, the avatar c
 - `assets/img/*-web.jpg`: web-sized photos; `hero-poster.jpg` is the avatar poster; `id-photo.jpg` is the badge crop.
 - `assets/Yathish_Veerabhadraiah_Resume.pdf`: résumé served by the download buttons.
 
-## Deploy
+## Hosting
 
-It is plain HTML/CSS/JS, so drop the `portfolio` folder onto GitHub Pages, Netlify, Vercel, Cloudflare Pages or an S3 + CloudFront bucket. No build step.
+Live at **https://yathish27.github.io/** via GitHub Pages, served from the `main` branch of https://github.com/Yathish27/Yathish27.github.io (this folder is that repository). To publish a change:
+
+```bash
+git add -A && git commit -m "Update portfolio" && git push
+```
+
+GitHub Pages rebuilds in about a minute. It is plain HTML/CSS/JS with no build step, so the same folder also drops straight onto Netlify, Vercel, Cloudflare Pages or an S3 + CloudFront bucket if you ever move it. To use a custom domain, add a `CNAME` file containing the domain and point the domain's DNS at GitHub Pages.
 
 ## Behaviour notes
 
