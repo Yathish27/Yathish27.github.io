@@ -300,15 +300,17 @@
     const trophy = (a, i) => {
       const m = METALS[a.metal] || METALS.gold;
       return `<figure class="trophy" style="--i:${i};--glow:${m.glow};--accent:${a.accent}" tabindex="0" aria-label="${esc(a.title)}">` +
-        `<div class="trophy-obj">${trophySvg(a.shape, a.metal, i, a.rank)}<i class="spark s1"></i><i class="spark s2"></i></div>` +
+        `<i class="puck" aria-hidden="true"></i><div class="trophy-obj">${trophySvg(a.shape, a.metal, i, a.rank)}<i class="spark s1"></i><i class="spark s2"></i></div>` +
         `<figcaption class="plate"><b>${esc(a.title)}</b><span>${esc(a.kicker)}</span></figcaption>` +
         `<div class="trophy-detail"><p class="ach-kicker">${esc(a.kicker)}</p><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p></div></figure>`;
     };
     track.innerHTML = `<div class="cabinet" id="cabinet" style="--slots:${perShelf}">` +
-      `<div class="cab-led" aria-hidden="true"></div>` +
+      `<div class="cab-crown" aria-hidden="true"><span>YNV · TROPHY CABINET · EST. 2017</span></div>` +
+      `<div class="cab-interior"><div class="cab-led" aria-hidden="true"></div>` +
       shelves.map((row, r) => `<div class="cab-shelf" data-shelf="${r}">${row.map((a, k) => trophy(a, r * perShelf + k)).join('')}<div class="shelf-board"></div></div>`).join('') +
-      `<div class="cab-spot" aria-hidden="true"></div><div class="cab-glass" aria-hidden="true"></div>` +
-      `<div class="cab-tag" aria-hidden="true">${items.length} AWARDS · EST. 2017 · HANDLE WITH CARE</div></div>`;
+      `<div class="cab-spot" aria-hidden="true"></div></div>` +
+      `<div class="cab-doors" aria-hidden="true"><i class="pane"></i><i class="pane"></i><b class="handle l"></b><b class="handle r"></b></div>` +
+      `<div class="cab-plinth" aria-hidden="true"><span>${items.length} AWARDS · HANDLE WITH CARE</span></div></div>`;
     const cabinet = $('#cabinet');
 
     // staggered entrance when the cabinet comes into view
@@ -328,7 +330,8 @@
       if (!mq.matches) { section.style.height = ''; track.style.transform = ''; return; }
       track.style.transform = 'translate3d(0,0,0)';
       maxX = Math.max(0, track.scrollWidth - innerWidth);
-      section.style.height = `${innerHeight + maxX}px`;
+      const dock = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock')) || 0;
+      section.style.height = `${innerHeight - (document.body.classList.contains('dock-off') ? 0 : dock) + maxX}px`;
       start = section.getBoundingClientRect().top + scrollY;
       onScroll();
     }
@@ -793,33 +796,33 @@
     }
   }
 
-  /* ---------- mascot guide: walks along the bottom of the page and narrates each section ---------- */
+  /* ---------- guide deck: the mascot walks along a reserved strip at the bottom and narrates each section ---------- */
   function initMascot() {
     const M = D.mascot, root = $('#mascot');
     if (!M || !root) return;
-    const figure = $('#mascotFigure'), puppet = $('#puppet'), textEl = $('#mascotText');
+    const figure = $('#mascotFigure'), puppet = $('#puppet'), textEl = $('#mascotText'), panel = $('#mascotBubble');
     const voiceBtn = $('#mascotVoice'), nextBtn = $('#mascotNext'), hideBtn = $('#mascotHide'), restoreBtn = $('#mascotRestore');
-    const video = $('#mascotVideo'), canvas = $('#mascotCanvas');
+    const video = $('#mascotVideo'), canvas = $('#mascotCanvas'), tag = $('#dockSection'), prog = $('#dockProg');
     const L = M.layers || { w: 393, h: 1216, hipY: 724 };
-    puppet.style.setProperty('--ar', (L.w / L.h).toFixed(4));
     puppet.style.setProperty('--hip', `${(L.hipY / L.h * 100).toFixed(2)}%`);
-    root.style.setProperty('--ar', (L.w / L.h).toFixed(4));
+    figure.style.setProperty('--ar', (L.w / L.h).toFixed(4));
 
     const ids = Object.keys(M.guide).filter((id) => document.getElementById(id));
-    let voiceOn = false, hidden = false, current = null, x = -260, typingTimer = 0, walkTimer = 0, started = false;
+    const labels = { intro: 'INTRO', ops: 'SOC CONSOLE', avatars: 'AVATARS', about: 'PROFILE', id: 'ACCESS BADGE', skills: 'SKILLS', experience: 'EXPERIENCE', achievements: 'TROPHIES', projects: 'PROJECTS', education: 'EDUCATION', contact: 'CONTACT' };
+    let voiceOn = false, hidden = false, current = null, x = -300, typingTimer = 0, walkTimer = 0, started = false;
     try { voiceOn = localStorage.getItem('ynv-mascot-voice') === '1'; hidden = sessionStorage.getItem('ynv-mascot-hidden') === '1'; } catch (e) { /* storage unavailable */ }
 
-    /* --- optional keyed video clips (Flow / Veo), else the puppet cutout --- */
+    /* --- optional keyed video clips (e.g. Flow / Veo green-screen takes), else the puppet cut-out --- */
     const clips = M.clips || {};
     const hasClips = !!(clips.walk || clips.talk);
     const alphaWebm = hasClips && video.canPlayType && video.canPlayType('video/webm; codecs="vp9"') !== '';
-    let clipMode = 'puppet', matteVideo = null, matteRaf = 0, matteCanvas = null;
+    let clipMode = 'puppet', matteVideo = null, matteRaf = 0, matteCanvas = null, currentClip = '';
     if (hasClips) {
       puppet.classList.add('is-hidden');
       if (alphaWebm) { clipMode = 'webm'; video.classList.remove('is-hidden'); }
       else {
         clipMode = 'stacked'; canvas.classList.remove('is-hidden');
-        matteVideo = document.createElement('video'); matteVideo.muted = true; matteVideo.loop = true; matteVideo.playsInline = true; matteVideo.crossOrigin = 'anonymous';
+        matteVideo = document.createElement('video'); matteVideo.muted = true; matteVideo.loop = true; matteVideo.playsInline = true;
         matteCanvas = document.createElement('canvas');
       }
     }
@@ -833,7 +836,6 @@
       ctx.globalCompositeOperation = 'destination-in'; ctx.drawImage(matteCanvas, 0, 0);
       matteRaf = requestAnimationFrame(drawStacked);
     }
-    let currentClip = '';
     function setClip(name) {
       const base = clips[name] || clips.talk || clips.walk;
       if (!hasClips || !base || currentClip === base) return;
@@ -857,13 +859,13 @@
       clearInterval(typingTimer); textEl.textContent = ''; root.classList.add('has-text');
       if (reduced) { textEl.textContent = text; return; }
       let i = 0;
-      typingTimer = setInterval(() => { textEl.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typingTimer); }, 18);
+      typingTimer = setInterval(() => { textEl.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typingTimer); }, 16);
     }
     function say(text) {
       typeText(text);
       stopSpeech();
       root.classList.add('talking'); setClip('talk');
-      const stopTalking = () => { root.classList.remove('talking'); };
+      const stopTalking = () => root.classList.remove('talking');
       if (voiceOn && 'speechSynthesis' in window) {
         const u = new SpeechSynthesisUtterance(text);
         const v = pickVoice(); if (v) u.voice = v;
@@ -872,40 +874,51 @@
       } else setTimeout(stopTalking, Math.min(9000, 1200 + text.length * 45));
     }
 
-    /* --- movement --- */
-    function width() { return figure.getBoundingClientRect().width || 80; }
-    function targetFor(index) {
-      const w = width(), pad = 14;
-      if (innerWidth < 700) return index % 2 === 0 ? pad : innerWidth - w - pad;
-      return index % 2 === 0 ? pad + 8 : Math.max(pad, innerWidth - w - pad - 8);
+    /* --- movement along the deck: left lane | panel | right lane --- */
+    function figW() { return figure.getBoundingClientRect().width || 74; }
+    function lanes() {
+      const w = figW(), pad = 14;
+      if (innerWidth < 800) return [[pad, pad], [pad, pad]];              // phones: the figure stays left of the panel
+      const p = panel.getBoundingClientRect();
+      const leftLane = [pad, Math.max(pad, p.left - w - 18)];
+      const rightLane = [Math.min(innerWidth - w - pad, p.right + 18), innerWidth - w - pad];
+      return [leftLane, rightLane];
     }
-    function walkTo(px, then) {
+    function targetFor(index) {
+      const [left, right] = lanes();
+      const lane = index % 2 === 0 ? left : right;
+      // spread stops along the lane so consecutive visits land on different spots
+      const t = ((index * 7) % 5) / 4;
+      return lane[0] + (lane[1] - lane[0]) * t;
+    }
+    function walkTo(px) {
       clearTimeout(walkTimer);
       const dist = Math.abs(px - x);
       const dur = reduced ? 0 : Math.min(2.4, Math.max(0.45, dist / 420));
-      root.classList.toggle('face-left', px < x);
-      root.classList.toggle('at-right', px > innerWidth / 2);
-      root.style.transition = `transform ${dur}s linear`;
-      root.style.transform = `translateX(${Math.round(px)}px)`;
+      figure.style.setProperty('--face', px < x ? '-1' : '1');
+      figure.style.setProperty('--mdur', `${dur}s`);
+      figure.style.setProperty('--mx', `${Math.round(px)}px`);
       x = px;
       if (dur > 0.05) { root.classList.add('walking'); root.classList.remove('idle'); setClip('walk'); }
-      walkTimer = setTimeout(() => { root.classList.remove('walking'); root.classList.add('idle'); if (then) then(); }, dur * 1000 + 60);
+      walkTimer = setTimeout(() => { root.classList.remove('walking'); root.classList.add('idle'); }, dur * 1000 + 60);
     }
     function goTo(id) {
       if (hidden || id === current) return;
       current = id;
-      const i = ids.indexOf(id);
-      say(M.guide[id]);                       // talk while walking so fast scrollers never see stale text
-      walkTo(targetFor(i < 0 ? 0 : i));
+      const i = Math.max(0, ids.indexOf(id));
+      tag.textContent = labels[id] || id.toUpperCase();
+      prog.style.width = `${((i + 1) / ids.length * 100).toFixed(1)}%`;
+      say(M.guide[id]);
+      walkTo(targetFor(i));
     }
 
     /* --- section tracking --- */
     const ratios = new Map();
+    function pickBest() { let best = null, bestR = 0.2; ratios.forEach((r, id) => { if (r > bestR) { bestR = r; best = id; } }); return best; }
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => ratios.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
       if (!started) return;
-      let best = null, bestR = 0.2;
-      ratios.forEach((r, id) => { if (r > bestR) { bestR = r; best = id; } });
+      const best = pickBest();
       if (best) goTo(best);
     }, { threshold: [0.2, 0.35, 0.5, 0.75] });
     ids.forEach((id) => io.observe(document.getElementById(id)));
@@ -916,26 +929,37 @@
       try { localStorage.setItem('ynv-mascot-voice', on ? '1' : '0'); } catch (e) { /* ignore */ }
       if (!on) stopSpeech();
     }
+    function setHidden(on) {
+      hidden = on; root.classList.toggle('is-off', on); document.body.classList.toggle('dock-off', on); restoreBtn.classList.toggle('is-hidden', !on);
+      try { if (on) sessionStorage.setItem('ynv-mascot-hidden', '1'); else sessionStorage.removeItem('ynv-mascot-hidden'); } catch (e) { /* ignore */ }
+      if (on) stopSpeech();
+      if (window.__measureAchievements) window.__measureAchievements();
+    }
     voiceBtn.addEventListener('click', () => { setVoice(!voiceOn); if (voiceOn && current) say(M.guide[current] || M.intro); });
     nextBtn.addEventListener('click', () => {
       const i = Math.max(0, ids.indexOf(current)); const next = ids[(i + 1) % ids.length];
       document.getElementById(next).scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
     });
-    hideBtn.addEventListener('click', () => { hidden = true; stopSpeech(); root.classList.add('is-off'); restoreBtn.classList.remove('is-hidden'); try { sessionStorage.setItem('ynv-mascot-hidden', '1'); } catch (e) { /* ignore */ } });
-    restoreBtn.addEventListener('click', () => { hidden = false; root.classList.remove('is-off'); restoreBtn.classList.add('is-hidden'); try { sessionStorage.removeItem('ynv-mascot-hidden'); } catch (e) { /* ignore */ } current = null; started = true; io.takeRecords(); goTo(ids[0]); });
-    figure.addEventListener('click', () => { say(current ? M.guide[current] : M.intro); });
-    addEventListener('resize', () => { if (current) { const i = ids.indexOf(current); root.style.transition = 'none'; x = targetFor(i < 0 ? 0 : i); root.style.transform = `translateX(${Math.round(x)}px)`; } });
+    hideBtn.addEventListener('click', () => setHidden(true));
+    restoreBtn.addEventListener('click', () => { setHidden(false); current = null; started = true; const best = pickBest() || ids[0]; goTo(best); });
+    figure.addEventListener('click', () => say(current ? M.guide[current] : M.intro));
+    figure.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); figure.click(); } });
+    addEventListener('resize', () => { if (current) { const i = Math.max(0, ids.indexOf(current)); figure.style.setProperty('--mdur', '0s'); x = targetFor(i); figure.style.setProperty('--mx', `${Math.round(x)}px`); } });
     document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeech(); });
 
     setVoice(voiceOn);
-    if (hidden) { root.classList.add('is-off'); restoreBtn.classList.remove('is-hidden'); started = true; return; }
+    if (hidden) { setHidden(true); started = true; return; }
 
-    /* --- entrance: walk in from the left, greet, then follow the visitor --- */
-    root.style.transition = 'none'; root.style.transform = `translateX(${x}px)`; root.classList.add('idle');
+    /* --- entrance: walk in from off-screen, greet, then follow the visitor --- */
+    figure.style.setProperty('--mdur', '0s'); figure.style.setProperty('--mx', `${x}px`); root.classList.add('idle');
     setClip('walk');
     setTimeout(() => {
-      walkTo(targetFor(0), () => { say(M.intro); current = ids[0] || null; started = true; setTimeout(() => { let best = null, bestR = 0.2; ratios.forEach((r, id) => { if (r > bestR) { bestR = r; best = id; } }); if (best && best !== current) goTo(best); }, 3500); });
-    }, reduced ? 0 : 900);
+      tag.textContent = 'HELLO'; prog.style.width = '4%';
+      say(M.intro);
+      walkTo(targetFor(0));
+      current = ids[0] || null; started = true;
+      setTimeout(() => { const best = pickBest(); if (best && best !== current) goTo(best); }, 4200);
+    }, reduced ? 0 : 700);
   }
 
   /* ---------- boot ---------- */
