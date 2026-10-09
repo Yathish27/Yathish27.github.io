@@ -391,5 +391,26 @@ window.DATA = {
       fallback: 'assets/img/white-stool-web.jpg',
       body: 'EC2, Lambda, S3, Route 53 and Kubernetes are my other computers. Least-privilege IAM, patched hosts and security-gated pipelines keep them yours, not someone else’s.'
     }
-  ]
+  ],
+  // ---------- mascot guide ----------
+  mascot: {
+    // Optional video clips keyed out to transparency (set to null to use the puppet cutout).
+    // Each entry needs <base>.webm (VP9 alpha) and <base>-stacked.mp4 (RGB over alpha matte) in assets/video.
+    clips: { walk: null, talk: null },
+    layers: { w: 393, h: 1216, hipY: 724, bodyH: 736, legsH: 492 },
+    intro: "Hi, I'm Yathish. I'll walk you through my portfolio. Turn my voice on if you'd like me to talk.",
+    guide: {
+      intro: "This is me, live from CAM-02. Tap the frame to hear me say hello, or scroll and I'll follow you down.",
+      ops: "Welcome to the SOC console. Play my intro on CAM-01, type help in the terminal, or run nmap yathish to scan me.",
+      avatars: "Three faces of my threat model: red team, detection and cloud. Hover a card to break it a little.",
+      about: "The short version: a security background with builder's habits. M.S. in Cybersecurity at NYU with a 4.0 GPA.",
+      id: "My access badge. Flip it to get my email, phone and LinkedIn.",
+      skills: "A periodic table of everything I work with. Hover an element to see where I used it, or filter by group.",
+      experience: "My mission log: CTO at Plurall AI, DevSecOps at Schneider Electric, and teaching offensive security at NYU.",
+      achievements: "The trophy cabinet. Keep scrolling to walk along it, and hover any trophy to read its plaque.",
+      projects: "Things I built: Spybot, reactive APIs that cut latency by 75 percent, a red-team engagement and an MCP server.",
+      education: "Training data: NYU Tandon and PES University, plus CRTP, with CPTS and CRTO in progress.",
+      contact: "That's the tour. Email me, or type sudo hire yathish in the console. Let's build something secure together."
+    }
+  }
 };

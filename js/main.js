@@ -793,6 +793,151 @@
     }
   }
 
+  /* ---------- mascot guide: walks along the bottom of the page and narrates each section ---------- */
+  function initMascot() {
+    const M = D.mascot, root = $('#mascot');
+    if (!M || !root) return;
+    const figure = $('#mascotFigure'), puppet = $('#puppet'), textEl = $('#mascotText');
+    const voiceBtn = $('#mascotVoice'), nextBtn = $('#mascotNext'), hideBtn = $('#mascotHide'), restoreBtn = $('#mascotRestore');
+    const video = $('#mascotVideo'), canvas = $('#mascotCanvas');
+    const L = M.layers || { w: 393, h: 1216, hipY: 724 };
+    puppet.style.setProperty('--ar', (L.w / L.h).toFixed(4));
+    puppet.style.setProperty('--hip', `${(L.hipY / L.h * 100).toFixed(2)}%`);
+    root.style.setProperty('--ar', (L.w / L.h).toFixed(4));
+
+    const ids = Object.keys(M.guide).filter((id) => document.getElementById(id));
+    let voiceOn = false, hidden = false, current = null, x = -260, typingTimer = 0, walkTimer = 0, started = false;
+    try { voiceOn = localStorage.getItem('ynv-mascot-voice') === '1'; hidden = sessionStorage.getItem('ynv-mascot-hidden') === '1'; } catch (e) { /* storage unavailable */ }
+
+    /* --- optional keyed video clips (Flow / Veo), else the puppet cutout --- */
+    const clips = M.clips || {};
+    const hasClips = !!(clips.walk || clips.talk);
+    const alphaWebm = hasClips && video.canPlayType && video.canPlayType('video/webm; codecs="vp9"') !== '';
+    let clipMode = 'puppet', matteVideo = null, matteRaf = 0, matteCanvas = null;
+    if (hasClips) {
+      puppet.classList.add('is-hidden');
+      if (alphaWebm) { clipMode = 'webm'; video.classList.remove('is-hidden'); }
+      else {
+        clipMode = 'stacked'; canvas.classList.remove('is-hidden');
+        matteVideo = document.createElement('video'); matteVideo.muted = true; matteVideo.loop = true; matteVideo.playsInline = true; matteVideo.crossOrigin = 'anonymous';
+        matteCanvas = document.createElement('canvas');
+      }
+    }
+    function drawStacked() {
+      const v = matteVideo; if (!v || v.readyState < 2) { matteRaf = requestAnimationFrame(drawStacked); return; }
+      const w = v.videoWidth, h = v.videoHeight / 2;
+      if (canvas.width !== w) { canvas.width = w; canvas.height = h; matteCanvas.width = w; matteCanvas.height = h; }
+      const ctx = canvas.getContext('2d'), mctx = matteCanvas.getContext('2d');
+      mctx.drawImage(v, 0, h, w, h, 0, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over'; ctx.clearRect(0, 0, w, h); ctx.drawImage(v, 0, 0, w, h, 0, 0, w, h);
+      ctx.globalCompositeOperation = 'destination-in'; ctx.drawImage(matteCanvas, 0, 0);
+      matteRaf = requestAnimationFrame(drawStacked);
+    }
+    let currentClip = '';
+    function setClip(name) {
+      const base = clips[name] || clips.talk || clips.walk;
+      if (!hasClips || !base || currentClip === base) return;
+      currentClip = base;
+      if (clipMode === 'webm') { video.src = `${base}.webm`; video.loop = true; video.muted = true; video.play().catch(() => {}); }
+      else { matteVideo.src = `${base}-stacked.mp4`; matteVideo.play().catch(() => {}); cancelAnimationFrame(matteRaf); drawStacked(); }
+    }
+
+    /* --- speech --- */
+    let voices = [];
+    function loadVoices() { voices = ('speechSynthesis' in window) ? speechSynthesis.getVoices() : []; }
+    loadVoices();
+    if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = loadVoices;
+    function pickVoice() {
+      const pref = ['Google US English', 'Microsoft Guy', 'Microsoft David', 'Microsoft Mark', 'Daniel', 'Alex'];
+      for (const p of pref) { const v = voices.find((x) => x.name.includes(p)); if (v) return v; }
+      return voices.find((x) => /^en[-_]US/i.test(x.lang)) || voices.find((x) => /^en/i.test(x.lang)) || null;
+    }
+    function stopSpeech() { if ('speechSynthesis' in window) speechSynthesis.cancel(); root.classList.remove('talking'); }
+    function typeText(text) {
+      clearInterval(typingTimer); textEl.textContent = ''; root.classList.add('has-text');
+      if (reduced) { textEl.textContent = text; return; }
+      let i = 0;
+      typingTimer = setInterval(() => { textEl.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typingTimer); }, 18);
+    }
+    function say(text) {
+      typeText(text);
+      stopSpeech();
+      root.classList.add('talking'); setClip('talk');
+      const stopTalking = () => { root.classList.remove('talking'); };
+      if (voiceOn && 'speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(text);
+        const v = pickVoice(); if (v) u.voice = v;
+        u.rate = 1.02; u.pitch = 1; u.onend = stopTalking; u.onerror = stopTalking;
+        speechSynthesis.speak(u);
+      } else setTimeout(stopTalking, Math.min(9000, 1200 + text.length * 45));
+    }
+
+    /* --- movement --- */
+    function width() { return figure.getBoundingClientRect().width || 80; }
+    function targetFor(index) {
+      const w = width(), pad = 14;
+      if (innerWidth < 700) return index % 2 === 0 ? pad : innerWidth - w - pad;
+      return index % 2 === 0 ? pad + 8 : Math.max(pad, innerWidth - w - pad - 8);
+    }
+    function walkTo(px, then) {
+      clearTimeout(walkTimer);
+      const dist = Math.abs(px - x);
+      const dur = reduced ? 0 : Math.min(2.4, Math.max(0.45, dist / 420));
+      root.classList.toggle('face-left', px < x);
+      root.classList.toggle('at-right', px > innerWidth / 2);
+      root.style.transition = `transform ${dur}s linear`;
+      root.style.transform = `translateX(${Math.round(px)}px)`;
+      x = px;
+      if (dur > 0.05) { root.classList.add('walking'); root.classList.remove('idle'); setClip('walk'); }
+      walkTimer = setTimeout(() => { root.classList.remove('walking'); root.classList.add('idle'); if (then) then(); }, dur * 1000 + 60);
+    }
+    function goTo(id) {
+      if (hidden || id === current) return;
+      current = id;
+      const i = ids.indexOf(id);
+      say(M.guide[id]);                       // talk while walking so fast scrollers never see stale text
+      walkTo(targetFor(i < 0 ? 0 : i));
+    }
+
+    /* --- section tracking --- */
+    const ratios = new Map();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => ratios.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
+      if (!started) return;
+      let best = null, bestR = 0.2;
+      ratios.forEach((r, id) => { if (r > bestR) { bestR = r; best = id; } });
+      if (best) goTo(best);
+    }, { threshold: [0.2, 0.35, 0.5, 0.75] });
+    ids.forEach((id) => io.observe(document.getElementById(id)));
+
+    /* --- controls --- */
+    function setVoice(on) {
+      voiceOn = on; voiceBtn.setAttribute('aria-pressed', String(on)); voiceBtn.textContent = on ? '🔊 voice on' : '🔇 voice off';
+      try { localStorage.setItem('ynv-mascot-voice', on ? '1' : '0'); } catch (e) { /* ignore */ }
+      if (!on) stopSpeech();
+    }
+    voiceBtn.addEventListener('click', () => { setVoice(!voiceOn); if (voiceOn && current) say(M.guide[current] || M.intro); });
+    nextBtn.addEventListener('click', () => {
+      const i = Math.max(0, ids.indexOf(current)); const next = ids[(i + 1) % ids.length];
+      document.getElementById(next).scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    });
+    hideBtn.addEventListener('click', () => { hidden = true; stopSpeech(); root.classList.add('is-off'); restoreBtn.classList.remove('is-hidden'); try { sessionStorage.setItem('ynv-mascot-hidden', '1'); } catch (e) { /* ignore */ } });
+    restoreBtn.addEventListener('click', () => { hidden = false; root.classList.remove('is-off'); restoreBtn.classList.add('is-hidden'); try { sessionStorage.removeItem('ynv-mascot-hidden'); } catch (e) { /* ignore */ } current = null; started = true; io.takeRecords(); goTo(ids[0]); });
+    figure.addEventListener('click', () => { say(current ? M.guide[current] : M.intro); });
+    addEventListener('resize', () => { if (current) { const i = ids.indexOf(current); root.style.transition = 'none'; x = targetFor(i < 0 ? 0 : i); root.style.transform = `translateX(${Math.round(x)}px)`; } });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeech(); });
+
+    setVoice(voiceOn);
+    if (hidden) { root.classList.add('is-off'); restoreBtn.classList.remove('is-hidden'); started = true; return; }
+
+    /* --- entrance: walk in from the left, greet, then follow the visitor --- */
+    root.style.transition = 'none'; root.style.transform = `translateX(${x}px)`; root.classList.add('idle');
+    setClip('walk');
+    setTimeout(() => {
+      walkTo(targetFor(0), () => { say(M.intro); current = ids[0] || null; started = true; setTimeout(() => { let best = null, bestR = 0.2; ratios.forEach((r, id) => { if (r > bestR) { bestR = r; best = id; } }); if (best && best !== current) goTo(best); }, 3500); });
+    }, reduced ? 0 : 900);
+  }
+
   /* ---------- boot ---------- */
   initBg();
   initCursor();
@@ -812,4 +957,5 @@
   initEducation();
   initReveal();
   initContact();
+  initMascot();
 })();

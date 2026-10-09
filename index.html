@@ -320,6 +320,29 @@
     </section>
   </main>
 
+  <!-- ============ MASCOT GUIDE ============ -->
+  <div class="mascot" id="mascot" aria-live="polite">
+    <div class="mascot-figure" id="mascotFigure" role="button" tabindex="0" aria-label="Yathish, your guide. Click to repeat the hint.">
+      <div class="puppet" id="puppet">
+        <img class="pp-leg pp-left" src="assets/img/mascot/legs-left.png" alt="" draggable="false">
+        <img class="pp-leg pp-right" src="assets/img/mascot/legs-right.png" alt="" draggable="false">
+        <img class="pp-body" src="assets/img/mascot/body.png" alt="" draggable="false">
+      </div>
+      <video class="mascot-video is-hidden" id="mascotVideo" playsinline muted loop preload="auto"></video>
+      <canvas class="mascot-canvas is-hidden" id="mascotCanvas" aria-hidden="true"></canvas>
+      <div class="mascot-shadow" aria-hidden="true"></div>
+    </div>
+    <div class="mascot-bubble" id="mascotBubble">
+      <p id="mascotText"></p>
+      <div class="mascot-ctl">
+        <button id="mascotVoice" type="button" aria-pressed="false">🔇 voice off</button>
+        <button id="mascotNext" type="button">next section ›</button>
+        <button id="mascotHide" type="button" aria-label="Hide the guide">×</button>
+      </div>
+    </div>
+  </div>
+  <button class="mascot-restore is-hidden" id="mascotRestore" type="button">👋 Bring back the guide</button>
+
   <footer class="footer">
     <div class="container footer-inner">
       <span class="mono">© <span id="year"></span> Yathish Naraganahalli Veerabhadraiah</span>
