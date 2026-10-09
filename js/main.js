@@ -809,7 +809,7 @@
     figure.style.setProperty('--ar', (L.w / L.h).toFixed(4));
 
     const ids = Object.keys(M.guide).filter((id) => document.getElementById(id));
-    const labels = { intro: 'INTRO', ops: 'SOC CONSOLE', avatars: 'AVATARS', about: 'PROFILE', id: 'ACCESS BADGE', skills: 'SKILLS', experience: 'EXPERIENCE', achievements: 'TROPHIES', projects: 'PROJECTS', education: 'EDUCATION', contact: 'CONTACT' };
+    const labels = { intro: 'INTRO', ops: 'SOC CONSOLE', avatars: 'AVATARS', aisec: 'AI SECURITY', about: 'PROFILE', id: 'ACCESS BADGE', skills: 'SKILLS', experience: 'EXPERIENCE', achievements: 'TROPHIES', projects: 'PROJECTS', education: 'EDUCATION', contact: 'CONTACT' };
     let voiceOn = false, hidden = false, current = null, x = -300, typingTimer = 0, walkTimer = 0, started = false, open = false, pendingText = M.intro;
     try { voiceOn = localStorage.getItem('ynv-mascot-voice') === '1'; hidden = sessionStorage.getItem('ynv-mascot-hidden') === '1'; } catch (e) { /* storage unavailable */ }
 
@@ -971,6 +971,100 @@
     }, reduced ? 0 : 700);
   }
 
+  /* ---------- AI security lab: animated LLM defense pipeline + interactive attack demo ---------- */
+  function initAiSec() {
+    const sec = $('#aisec'), svg = $('#aiPipe'), log = $('#aiLog'), chips = $('#aiAttacks'), caps = $('#aiCaps'), verdict = $('#aiVerdict');
+    if (!sec || !svg) return;
+    const A = D.aisec;
+    caps.innerHTML = A.capabilities.map((c, i) => `<li class="cap reveal" style="--i:${i}"><span class="cap-ico">${c.icon}</span><div><b>${esc(c.title)}</b><p>${esc(c.body)}</p></div></li>`).join('');
+    chips.innerHTML = A.attacks.map((a, i) => `<button type="button" data-i="${i}" class="${a.kind === 'benign' ? 'benign' : ''}">${esc(a.label)}</button>`).join('');
+
+    // pipeline geometry (viewBox 0 0 900 250)
+    const nodes = [
+      { id: 'user', x: 70, y: 110, label: 'USER', sub: 'prompt' },
+      { id: 'guard', x: 290, y: 110, label: 'INPUT GUARD', sub: 'injection · jailbreak' },
+      { id: 'llm', x: 500, y: 110, label: 'LLM', sub: 'tools · RAG' },
+      { id: 'filter', x: 700, y: 110, label: 'OUTPUT FILTER', sub: 'secrets · PII' },
+      { id: 'app', x: 860, y: 110, label: 'APP', sub: 'response' }
+    ];
+    const ns = 'http://www.w3.org/2000/svg';
+    const el = (t, attrs, parent) => { const e = document.createElementNS(ns, t); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+    svg.innerHTML = '';
+    const defs = el('defs', {});
+    defs.innerHTML = '<linearGradient id="aiWire" x1="0" x2="1"><stop offset="0" stop-color="#38e8ff" stop-opacity=".2"/><stop offset=".5" stop-color="#a78bfa" stop-opacity=".7"/><stop offset="1" stop-color="#38e8ff" stop-opacity=".2"/></linearGradient><filter id="aiGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+    el('path', { d: `M${nodes[0].x} 110 H${nodes[4].x}`, class: 'ai-wire' });
+    el('path', { d: 'M290 134 V 215', class: 'ai-drop' });
+    el('rect', { x: 246, y: 200, width: 88, height: 30, rx: 6, class: 'ai-bin' });
+    el('text', { x: 290, y: 220, class: 'ai-bin-label', 'text-anchor': 'middle' }).textContent = 'QUARANTINE';
+    const nodeEls = {};
+    nodes.forEach((n) => {
+      const g = el('g', { class: 'ai-node', 'data-id': n.id, transform: `translate(${n.x} ${n.y})` });
+      el('circle', { r: 26, class: 'ai-ring' }, g);
+      el('circle', { r: 18, class: 'ai-core' }, g);
+      el('text', { y: -38, class: 'ai-label', 'text-anchor': 'middle' }, g).textContent = n.label;
+      el('text', { y: 48, class: 'ai-sub', 'text-anchor': 'middle' }, g).textContent = n.sub;
+      nodeEls[n.id] = g;
+    });
+    const pkt = el('g', { class: 'ai-pkt is-hidden' });
+    el('circle', { r: 9, class: 'ai-pkt-core' }, pkt);
+    el('text', { y: -16, class: 'ai-pkt-label', 'text-anchor': 'middle' }, pkt);
+
+    function pulse(id, cls) { const g = nodeEls[id]; g.classList.add(cls); setTimeout(() => g.classList.remove(cls), 700); }
+    function addLog(text, cls) {
+      const d = document.createElement('div'); d.className = 'lg ' + (cls || ''); d.innerHTML = `<span class="ts">${new Date().toTimeString().slice(0, 8)}</span> ${text}`;
+      log.appendChild(d); while (log.children.length > 7) log.removeChild(log.firstChild);
+    }
+    function setPkt(x, y, label, cls) { pkt.setAttribute('transform', `translate(${x} ${y})`); pkt.querySelector('text').textContent = label; pkt.setAttribute('class', 'ai-pkt ' + cls); }
+    function tween(x0, y0, x1, y1, ms) {
+      return new Promise((res) => {
+        if (reduced) { pkt.setAttribute('transform', `translate(${x1} ${y1})`); return res(); }
+        const t0 = performance.now();
+        (function step(t) { const p = Math.min(1, (t - t0) / ms); const e = p < .5 ? 2 * p * p : -1 + (4 - 2 * p) * p; pkt.setAttribute('transform', `translate(${x0 + (x1 - x0) * e} ${y0 + (y1 - y0) * e})`); p < 1 ? requestAnimationFrame(step) : res(); })(t0);
+      });
+    }
+    let running = false, auto = true, timer = 0, queued = null;
+    async function run(attack) {
+      if (running) { queued = attack; return; }
+      running = true;
+      verdict.className = 'ai-verdict'; verdict.innerHTML = `<b>▶ ${esc(attack.label)}</b><span>${esc(attack.prompt)}</span>`;
+      setPkt(nodes[0].x, 110, attack.kind === 'benign' ? 'prompt' : attack.tag, attack.kind === 'benign' ? 'ok' : 'bad');
+      pulse('user', 'hit');
+      await tween(nodes[0].x, 110, nodes[1].x, 110, 900);
+      if (attack.kind !== 'benign' && attack.caught === 'input') {
+        pulse('guard', 'alert');
+        addLog(`<b>BLOCKED</b> ${esc(attack.label)} · rule: ${esc(attack.rule)}`, 'warn');
+        await tween(nodes[1].x, 110, nodes[1].x, 206, 650);
+        verdict.classList.add('blocked'); verdict.innerHTML += `<em>Caught at the input guard. ${esc(attack.fix)}</em>`;
+      } else {
+        pulse('guard', 'ok');
+        await tween(nodes[1].x, 110, nodes[2].x, 110, 800);
+        pulse('llm', 'hit');
+        await tween(nodes[2].x, 110, nodes[3].x, 110, 800);
+        if (attack.kind !== 'benign') {
+          pulse('filter', 'alert');
+          addLog(`<b>REDACTED</b> ${esc(attack.label)} · rule: ${esc(attack.rule)}`, 'warn');
+          setPkt(nodes[3].x, 110, 'redacted', 'fixed');
+          await tween(nodes[3].x, 110, nodes[4].x, 110, 700);
+          verdict.classList.add('blocked'); verdict.innerHTML += `<em>Caught at the output filter. ${esc(attack.fix)}</em>`;
+        } else {
+          pulse('filter', 'ok');
+          await tween(nodes[3].x, 110, nodes[4].x, 110, 700);
+          addLog(`<b>OK</b> answered in ${120 + Math.floor(Math.random() * 90)} ms · 0 findings`, 'ok');
+          verdict.classList.add('ok'); verdict.innerHTML += `<em>Clean prompt. Served normally, with the conversation logged for monitoring.</em>`;
+        }
+        pulse('app', 'hit');
+      }
+      await new Promise((r) => setTimeout(r, 500));
+      pkt.setAttribute('class', 'ai-pkt is-hidden');
+      running = false;
+      if (queued) { const q = queued; queued = null; run(q); }
+    }
+    function autoStep() { if (!auto || running) return; const pool = A.attacks; run(pool[Math.floor(Math.random() * pool.length)]); }
+    chips.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; auto = false; clearInterval(timer); run(A.attacks[+b.dataset.i]).then(() => { timer = setInterval(autoStep, 5200); auto = true; }); });
+    const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) { if (!timer) { autoStep(); timer = setInterval(autoStep, reduced ? 9000 : 5200); } } else { clearInterval(timer); timer = 0; } }), { threshold: 0.25 });
+    io.observe(sec);
+  }
+
   /* ---------- boot ---------- */
   initBg();
   initCursor();
@@ -982,6 +1076,7 @@
   initIntroFeed();
   initConsole();
   initAvatars();
+  initAiSec();
   initIdCard();
   initSkills();
   initTimeline();

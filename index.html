@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=202610090029">
+  <link rel="stylesheet" href="css/style.css?v=202610090042">
 </head>
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
@@ -30,6 +30,7 @@
         <a href="#intro">Intro</a>
         <a href="#ops">Console</a>
         <a href="#avatars">Avatars</a>
+        <a href="#aisec">AI Sec</a>
         <a href="#id">ID</a>
         <a href="#skills">Skills</a>
         <a href="#experience">Experience</a>
@@ -161,6 +162,30 @@
           <p class="lead">Red team, blue team and the cloud in between. Hover each card to break it a little.</p>
         </div>
         <div class="avatar-grid reveal" id="avatarGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ AI SECURITY LAB ============ -->
+    <section id="aisec" class="section aisec">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">// AI SECURITY · LIVE DEFENSE DEMO</p>
+          <h2>I secure the models, too</h2>
+          <p class="lead">Every prompt passes an input guard, the model, and an output filter. Watch attacks get caught, or pick one and send it yourself.</p>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-lab reveal">
+            <div class="ai-lab-head"><span>LLM DEFENSE PIPELINE</span><span>● live</span></div>
+            <svg id="aiPipe" class="ai-pipe" viewBox="0 0 920 250" role="img" aria-label="Animated pipeline: user prompt, input guard, LLM, output filter, app. Attacks are caught and quarantined."></svg>
+            <div class="ai-attacks" id="aiAttacks" aria-label="Send a test prompt"></div>
+            <div class="ai-verdict" id="aiVerdict" aria-live="polite"><b>▶ warming up</b><span>pick an attack above or wait for the next one</span></div>
+            <div class="ai-log" id="aiLog" aria-hidden="true"></div>
+          </div>
+          <div>
+            <p class="eyebrow">// WHAT I CAN DO FOR YOUR AI</p>
+            <ul class="ai-caps" id="aiCaps"></ul>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -358,7 +383,7 @@
     </div>
   </footer>
 
-  <script src="js/data.js?v=202610090029"></script>
-  <script src="js/main.js?v=202610090029"></script>
+  <script src="js/data.js?v=202610090042"></script>
+  <script src="js/main.js?v=202610090042"></script>
 </body>
 </html>
