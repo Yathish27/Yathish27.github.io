@@ -18,11 +18,10 @@ window.DATA = {
   },
 
   typed: [
-    'Security Automation',
-    'Cloud Services on AWS',
-    'Detection Tooling',
-    'DevSecOps Pipelines',
-    'LLM Red-Teaming'
+    'Backend services on AWS',
+    'Security automation & DevSecOps',
+    'Threat-detection tooling',
+    'LLM red-teaming'
   ],
 
   // Hero: full-body hello (plays once on load, replay with sound on tap)
