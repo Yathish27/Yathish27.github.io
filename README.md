@@ -43,7 +43,7 @@ Live in two places:
 git add -A && git commit -m "Update portfolio" && git push
 ```
 
-GitHub Pages rebuilds in about a minute. It is plain HTML/CSS/JS with no build step, so the same folder also drops straight onto Netlify, Vercel, Cloudflare Pages or an S3 + CloudFront bucket if you ever move it. To use a custom domain, add a `CNAME` file containing the domain and point the domain's DNS at GitHub Pages.
+GitHub Pages rebuilds in about a minute. `./publish.sh` does all of it in one go (re-stamps the `?v=` cache-busters on the CSS/JS links, commits, pushes and deploys to Firebase). It is plain HTML/CSS/JS with no build step, so the same folder also drops straight onto Netlify, Vercel, Cloudflare Pages or an S3 + CloudFront bucket if you ever move it. To use a custom domain, add a `CNAME` file containing the domain and point the domain's DNS at GitHub Pages.
 
 ## Behaviour notes
 
