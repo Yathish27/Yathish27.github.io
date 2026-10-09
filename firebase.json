@@ -7,7 +7,9 @@
       "**/.*",
       "**/node_modules/**",
       "README.md",
-      "firebase-debug.log"
+      "firebase-debug.log",
+      "publish.sh",
+      ".gitignore"
     ],
     "cleanUrls": true,
     "headers": [
