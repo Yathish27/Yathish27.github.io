@@ -27,7 +27,17 @@ Everything textual lives in `js/data.js`: name, links, typed roles, the avatar c
 
 ## Hosting
 
-Live at **https://yathish27.github.io/** via GitHub Pages, served from the `main` branch of https://github.com/Yathish27/Yathish27.github.io (this folder is that repository). To publish a change:
+Live in two places:
+
+- **Firebase Hosting:** https://yathish-portfolio-aab92.web.app (project `yathish-portfolio-aab92`, account yathishnv27@gmail.com). Config is in `firebase.json` (cache headers for media, `nosniff`/`SAMEORIGIN`/referrer-policy security headers, clean URLs) and `.firebaserc`. Redeploy with:
+
+  ```bash
+  firebase deploy --only hosting
+  ```
+
+  To attach a custom domain: Firebase console → Hosting → Add custom domain, then add the DNS records it shows.
+
+- **GitHub Pages:** https://yathish27.github.io/, served from the `main` branch of https://github.com/Yathish27/Yathish27.github.io (this folder is that repository). To publish a change:
 
 ```bash
 git add -A && git commit -m "Update portfolio" && git push
