@@ -353,6 +353,7 @@
     };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(settle, 50));
     else setTimeout(settle, 800);
+    window.__measureAchievements = measure;
   }
 
   /* ---------- projects ---------- */
@@ -796,12 +797,12 @@
     }
   }
 
-  /* ---------- guide deck: the mascot walks along a reserved strip at the bottom and narrates each section ---------- */
+  /* ---------- guide deck: the mascot walks along a slim reserved floor; the message opens only on click ---------- */
   function initMascot() {
     const M = D.mascot, root = $('#mascot');
     if (!M || !root) return;
-    const figure = $('#mascotFigure'), puppet = $('#puppet'), textEl = $('#mascotText'), panel = $('#mascotBubble');
-    const voiceBtn = $('#mascotVoice'), nextBtn = $('#mascotNext'), hideBtn = $('#mascotHide'), restoreBtn = $('#mascotRestore');
+    const figure = $('#mascotFigure'), puppet = $('#puppet'), textEl = $('#mascotText'), panel = $('#mascotBubble'), badge = $('#mascotBadge');
+    const voiceBtn = $('#mascotVoice'), nextBtn = $('#mascotNext'), closeBtn = $('#mascotClose'), hideBtn = $('#mascotHide'), restoreBtn = $('#mascotRestore');
     const video = $('#mascotVideo'), canvas = $('#mascotCanvas'), tag = $('#dockSection'), prog = $('#dockProg');
     const L = M.layers || { w: 393, h: 1216, hipY: 724 };
     puppet.style.setProperty('--hip', `${(L.hipY / L.h * 100).toFixed(2)}%`);
@@ -809,7 +810,7 @@
 
     const ids = Object.keys(M.guide).filter((id) => document.getElementById(id));
     const labels = { intro: 'INTRO', ops: 'SOC CONSOLE', avatars: 'AVATARS', about: 'PROFILE', id: 'ACCESS BADGE', skills: 'SKILLS', experience: 'EXPERIENCE', achievements: 'TROPHIES', projects: 'PROJECTS', education: 'EDUCATION', contact: 'CONTACT' };
-    let voiceOn = false, hidden = false, current = null, x = -300, typingTimer = 0, walkTimer = 0, started = false;
+    let voiceOn = false, hidden = false, current = null, x = -300, typingTimer = 0, walkTimer = 0, started = false, open = false, pendingText = M.intro;
     try { voiceOn = localStorage.getItem('ynv-mascot-voice') === '1'; hidden = sessionStorage.getItem('ynv-mascot-hidden') === '1'; } catch (e) { /* storage unavailable */ }
 
     /* --- optional keyed video clips (e.g. Flow / Veo green-screen takes), else the puppet cut-out --- */
@@ -844,19 +845,21 @@
       else { matteVideo.src = `${base}-stacked.mp4`; matteVideo.play().catch(() => {}); cancelAnimationFrame(matteRaf); drawStacked(); }
     }
 
-    /* --- speech --- */
+    /* --- speech: prefer a male system voice --- */
     let voices = [];
     function loadVoices() { voices = ('speechSynthesis' in window) ? speechSynthesis.getVoices() : []; }
     loadVoices();
     if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = loadVoices;
     function pickVoice() {
-      const pref = ['Google US English', 'Microsoft Guy', 'Microsoft David', 'Microsoft Mark', 'Daniel', 'Alex'];
-      for (const p of pref) { const v = voices.find((x) => x.name.includes(p)); if (v) return v; }
-      return voices.find((x) => /^en[-_]US/i.test(x.lang)) || voices.find((x) => /^en/i.test(x.lang)) || null;
+      const male = ['Microsoft Guy', 'Microsoft David', 'Microsoft Mark', 'Microsoft Ryan', 'Microsoft Christopher', 'Google UK English Male', 'Daniel', 'Alex', 'Fred', 'Rishi', 'Ravi', 'Aaron', 'Arthur'];
+      for (const p of male) { const v = voices.find((x) => x.name.includes(p)); if (v) return v; }
+      const anyMale = voices.find((x) => /male/i.test(x.name) && !/female/i.test(x.name));
+      if (anyMale) return anyMale;
+      return voices.find((x) => /^en[-_](US|GB|IN)/i.test(x.lang)) || voices.find((x) => /^en/i.test(x.lang)) || null;
     }
     function stopSpeech() { if ('speechSynthesis' in window) speechSynthesis.cancel(); root.classList.remove('talking'); }
     function typeText(text) {
-      clearInterval(typingTimer); textEl.textContent = ''; root.classList.add('has-text');
+      clearInterval(typingTimer); textEl.textContent = '';
       if (reduced) { textEl.textContent = text; return; }
       let i = 0;
       typingTimer = setInterval(() => { textEl.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typingTimer); }, 16);
@@ -869,27 +872,28 @@
       if (voiceOn && 'speechSynthesis' in window) {
         const u = new SpeechSynthesisUtterance(text);
         const v = pickVoice(); if (v) u.voice = v;
-        u.rate = 1.02; u.pitch = 1; u.onend = stopTalking; u.onerror = stopTalking;
+        u.rate = 1.0; u.pitch = 0.9; u.onend = stopTalking; u.onerror = stopTalking;
         speechSynthesis.speak(u);
       } else setTimeout(stopTalking, Math.min(9000, 1200 + text.length * 45));
     }
 
-    /* --- movement along the deck: left lane | panel | right lane --- */
-    function figW() { return figure.getBoundingClientRect().width || 74; }
-    function lanes() {
-      const w = figW(), pad = 14;
-      if (innerWidth < 800) return [[pad, pad], [pad, pad]];              // phones: the figure stays left of the panel
-      const p = panel.getBoundingClientRect();
-      const leftLane = [pad, Math.max(pad, p.left - w - 18)];
-      const rightLane = [Math.min(innerWidth - w - pad, p.right + 18), innerWidth - w - pad];
-      return [leftLane, rightLane];
+    /* --- message panel: opens only when the figure is clicked --- */
+    function openPanel() {
+      open = true; root.classList.add('is-open'); badge.classList.remove('on'); figure.setAttribute('aria-expanded', 'true');
+      document.documentElement.style.setProperty('--dock', innerWidth < 800 ? '250px' : '238px');
+      if (window.__measureAchievements) setTimeout(window.__measureAchievements, 320);
+      panel.classList.toggle('from-right', x > innerWidth / 2);
+      say(pendingText);
     }
+    function closePanel() { open = false; root.classList.remove('is-open'); figure.setAttribute('aria-expanded', 'false'); stopSpeech(); clearInterval(typingTimer); document.documentElement.style.removeProperty('--dock'); if (window.__measureAchievements) setTimeout(window.__measureAchievements, 320); }
+    function setMessage(text) { pendingText = text; if (open) say(text); else badge.classList.add('on'); }
+
+    /* --- movement along the floor --- */
+    function figW() { return figure.getBoundingClientRect().width || 50; }
     function targetFor(index) {
-      const [left, right] = lanes();
-      const lane = index % 2 === 0 ? left : right;
-      // spread stops along the lane so consecutive visits land on different spots
-      const t = ((index * 7) % 5) / 4;
-      return lane[0] + (lane[1] - lane[0]) * t;
+      const w = figW(), pad = 14, span = innerWidth - w - pad * 2;
+      const stops = innerWidth < 800 ? [0.02, 0.5, 0.98] : [0.03, 0.26, 0.5, 0.74, 0.97];
+      return pad + span * stops[index % stops.length];
     }
     function walkTo(px) {
       clearTimeout(walkTimer);
@@ -899,6 +903,8 @@
       figure.style.setProperty('--mdur', `${dur}s`);
       figure.style.setProperty('--mx', `${Math.round(px)}px`);
       x = px;
+      if (open) panel.classList.toggle('from-right', px > innerWidth / 2);
+      panel.style.setProperty('--px', `${Math.round(px)}px`);
       if (dur > 0.05) { root.classList.add('walking'); root.classList.remove('idle'); setClip('walk'); }
       walkTimer = setTimeout(() => { root.classList.remove('walking'); root.classList.add('idle'); }, dur * 1000 + 60);
     }
@@ -908,8 +914,8 @@
       const i = Math.max(0, ids.indexOf(id));
       tag.textContent = labels[id] || id.toUpperCase();
       prog.style.width = `${((i + 1) / ids.length * 100).toFixed(1)}%`;
-      say(M.guide[id]);
       walkTo(targetFor(i));
+      setMessage(M.guide[id]);
     }
 
     /* --- section tracking --- */
@@ -932,33 +938,36 @@
     function setHidden(on) {
       hidden = on; root.classList.toggle('is-off', on); document.body.classList.toggle('dock-off', on); restoreBtn.classList.toggle('is-hidden', !on);
       try { if (on) sessionStorage.setItem('ynv-mascot-hidden', '1'); else sessionStorage.removeItem('ynv-mascot-hidden'); } catch (e) { /* ignore */ }
-      if (on) stopSpeech();
+      if (on) closePanel();
       if (window.__measureAchievements) window.__measureAchievements();
     }
-    voiceBtn.addEventListener('click', () => { setVoice(!voiceOn); if (voiceOn && current) say(M.guide[current] || M.intro); });
+    voiceBtn.addEventListener('click', () => { setVoice(!voiceOn); if (voiceOn && open) say(pendingText); });
     nextBtn.addEventListener('click', () => {
       const i = Math.max(0, ids.indexOf(current)); const next = ids[(i + 1) % ids.length];
       document.getElementById(next).scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
     });
+    closeBtn.addEventListener('click', closePanel);
     hideBtn.addEventListener('click', () => setHidden(true));
-    restoreBtn.addEventListener('click', () => { setHidden(false); current = null; started = true; const best = pickBest() || ids[0]; goTo(best); });
-    figure.addEventListener('click', () => say(current ? M.guide[current] : M.intro));
+    restoreBtn.addEventListener('click', () => { setHidden(false); current = null; started = true; goTo(pickBest() || ids[0]); });
+    figure.addEventListener('click', () => { if (open) closePanel(); else openPanel(); });
     figure.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); figure.click(); } });
-    addEventListener('resize', () => { if (current) { const i = Math.max(0, ids.indexOf(current)); figure.style.setProperty('--mdur', '0s'); x = targetFor(i); figure.style.setProperty('--mx', `${Math.round(x)}px`); } });
+    document.addEventListener('click', (e) => { if (open && !e.target.closest('#mascot')) closePanel(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) closePanel(); });
+    addEventListener('resize', () => { if (current) { const i = Math.max(0, ids.indexOf(current)); figure.style.setProperty('--mdur', '0s'); x = targetFor(i); figure.style.setProperty('--mx', `${Math.round(x)}px`); panel.style.setProperty('--px', `${Math.round(x)}px`); } });
     document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeech(); });
 
     setVoice(voiceOn);
     if (hidden) { setHidden(true); started = true; return; }
 
-    /* --- entrance: walk in from off-screen, greet, then follow the visitor --- */
+    /* --- entrance: walk in from off-screen; the greeting waits for a click --- */
     figure.style.setProperty('--mdur', '0s'); figure.style.setProperty('--mx', `${x}px`); root.classList.add('idle');
     setClip('walk');
     setTimeout(() => {
       tag.textContent = 'HELLO'; prog.style.width = '4%';
-      say(M.intro);
       walkTo(targetFor(0));
       current = ids[0] || null; started = true;
-      setTimeout(() => { const best = pickBest(); if (best && best !== current) goTo(best); }, 4200);
+      setMessage(M.intro);
+      setTimeout(() => { const best = pickBest(); if (best && best !== current) goTo(best); }, 3000);
     }, reduced ? 0 : 700);
   }
 
